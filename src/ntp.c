@@ -367,6 +367,9 @@ static void decode_msg(void *base, size_t len, struct timeval *tv,
 			connman_error("Failed to set time");
 			return;
 		}
+		if(system("hwclock --utc --systohc")) {
+			connman_error("Failed to set hwclock");
+		}
 
 	}
 }
