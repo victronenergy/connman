@@ -134,5 +134,10 @@ ethernet tethering.
 AllowHostnameUpdates = false
 TetheringTechnologies = ethernet,wifi,bluetooth,gadget
 .fi
+.TP
+.BI FavoriteMaxRetries=retries
+Maximum number of times to attempt connecting to a known wifi service in
+case of authentication failure. Set to negative to retry indefinitely.
+Default value is 2.
 .SH "SEE ALSO"
 .BR connman (8)

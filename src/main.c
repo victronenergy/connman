@@ -76,6 +76,7 @@ static struct {
 	char **tethering_technologies;
 	bool persistent_tethering_mode;
 	bool enable_6to4;
+	int favorite_max_retries;
 } connman_settings  = {
 	.bg_scan = true,
 	.pref_timeservers = NULL,
@@ -90,6 +91,7 @@ static struct {
 	.tethering_technologies = NULL,
 	.persistent_tethering_mode = false,
 	.enable_6to4 = false,
+	.favorite_max_retries = 2,
 };
 
 #define CONF_BG_SCAN                    "BackgroundScanning"
@@ -105,6 +107,7 @@ static struct {
 #define CONF_TETHERING_TECHNOLOGIES      "TetheringTechnologies"
 #define CONF_PERSISTENT_TETHERING_MODE  "PersistentTetheringMode"
 #define CONF_ENABLE_6TO4                "Enable6to4"
+#define CONF_FAVORITE_MAX_RETRIES       "FavoriteMaxRetries"
 
 static const char *supported_options[] = {
 	CONF_BG_SCAN,
@@ -120,6 +123,7 @@ static const char *supported_options[] = {
 	CONF_TETHERING_TECHNOLOGIES,
 	CONF_PERSISTENT_TETHERING_MODE,
 	CONF_ENABLE_6TO4,
+	CONF_FAVORITE_MAX_RETRIES,
 	NULL
 };
 
@@ -244,6 +248,7 @@ static void parse_config(GKeyFile *config)
 	char **tethering;
 	gsize len;
 	int timeout;
+	int retries;
 
 	if (!config) {
 		connman_settings.auto_connect =
@@ -365,6 +370,13 @@ static void parse_config(GKeyFile *config)
 					CONF_ENABLE_6TO4, &error);
 	if (!error)
 		connman_settings.enable_6to4 = boolean;
+
+	g_clear_error(&error);
+
+	retries = g_key_file_get_integer(config, "General",
+			CONF_FAVORITE_MAX_RETRIES, &error);
+	if (!error)
+		connman_settings.favorite_max_retries = retries;
 
 	g_clear_error(&error);
 }
@@ -583,6 +595,11 @@ unsigned int connman_timeout_input_request(void)
 unsigned int connman_timeout_browser_launch(void)
 {
 	return connman_settings.timeout_browserlaunch;
+}
+
+int connman_favorite_max_retries(void)
+{
+	return connman_settings.favorite_max_retries;
 }
 
 int main(int argc, char *argv[])
