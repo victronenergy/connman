@@ -167,8 +167,7 @@ static void send_packet(int fd, struct sockaddr *server, uint32_t timeout)
 	memset(&msg, 0, sizeof(msg));
 	msg.flags = NTP_FLAGS_ENCODE(NTP_FLAG_LI_NOTINSYNC, NTP_FLAG_VN_VER4,
 	    NTP_FLAG_MD_CLIENT);
-	msg.poll = 4;	// min
-	msg.poll = 10;	// max
+	msg.poll = 16; /* minimum value is 4 */
 	msg.precision = NTP_PRECISION_S;
 
 	if (server->sa_family == AF_INET) {
