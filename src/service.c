@@ -3648,6 +3648,7 @@ static void disconnect_on_last_session(enum connman_service_type type)
 }
 
 static int active_sessions[MAX_CONNMAN_SERVICE_TYPES] = {};
+static int always_connect[MAX_CONNMAN_SERVICE_TYPES] = {};
 static int active_count = 0;
 
 void __connman_service_set_active_session(bool enable, GSList *list)
@@ -3753,6 +3754,15 @@ static GList *preferred_tech_list_get(void)
 	return tech_data.preferred_list;
 }
 
+static void set_always_connecting_technologies()
+{
+	unsigned int *always_connected_techs =
+		connman_setting_get_uint_list("AlwaysConnectedTechnologies");
+	int i;
+	for (i = 0; always_connected_techs && always_connected_techs[i]; i++)
+		always_connect[always_connected_techs[i]] = 1;
+}
+
 static bool auto_connect_service(GList *services,
 				enum connman_service_connect_reason reason,
 				bool preferred)
@@ -3779,8 +3789,8 @@ static bool auto_connect_service(GList *services,
 		if (service->pending ||
 				is_connecting(service) ||
 				is_connected(service)) {
-			if (!active_count)
-				return true;
+			if (!active_count && !always_connect[service->type])
+					return true;
 
 			ignore[service->type] = true;
 			autoconnecting = true;
@@ -3802,7 +3812,9 @@ static bool auto_connect_service(GList *services,
 				CONNMAN_SERVICE_STATE_IDLE)
 			continue;
 
-		if (autoconnecting && !active_sessions[service->type]) {
+		if (autoconnecting &&
+				!active_sessions[service->type] &&
+				!always_connect[service->type]) {
 			DBG("service %p type %s has no users", service,
 				__connman_service_type2string(service->type));
 			continue;
@@ -3813,7 +3825,7 @@ static bool auto_connect_service(GList *services,
 
 		__connman_service_connect(service, reason);
 
-		if (!active_count)
+		if (!active_count && !always_connect[service->type])
 			return true;
 
 		ignore[service->type] = true;
@@ -7104,6 +7116,8 @@ int __connman_service_init(void)
 						agent_driver.name);
 		return err;
 	}
+
+	set_always_connecting_technologies();
 
 	connection = connman_dbus_get_connection();
 
