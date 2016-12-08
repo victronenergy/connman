@@ -1906,19 +1906,26 @@ static void settings_changed(struct connman_service *service,
 {
 	enum connman_ipconfig_type type;
 
-	if (!allow_property_changed(service))
-		return;
-
 	type = __connman_ipconfig_get_config_type(ipconfig);
 
-	if (type == CONNMAN_IPCONFIG_TYPE_IPV4)
-		connman_dbus_property_changed_dict(service->path,
+	if (allow_property_changed(service)) {
+		if (type == CONNMAN_IPCONFIG_TYPE_IPV4)
+			connman_dbus_property_changed_dict(service->path,
 					CONNMAN_SERVICE_INTERFACE, "IPv4",
 					append_ipv4, service);
-	else if (type == CONNMAN_IPCONFIG_TYPE_IPV6)
-		connman_dbus_property_changed_dict(service->path,
+		else if (type == CONNMAN_IPCONFIG_TYPE_IPV6)
+			connman_dbus_property_changed_dict(service->path,
 					CONNMAN_SERVICE_INTERFACE, "IPv6",
 					append_ipv6, service);
+	}
+
+	if (is_connected_state(service, service->state) &&
+			service == __connman_service_get_default()) {
+		nameserver_remove_all(service, type);
+		nameserver_add_all(service, type);
+
+		__connman_timeserver_sync(service);
+	}
 
 	__connman_notifier_ipconfig_changed(service, ipconfig);
 }
