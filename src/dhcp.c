@@ -265,9 +265,12 @@ static void no_lease_cb(GDHCPClient *dhcp_client, gpointer user_data)
 	if (ipv4ll_running)
 		return;
 
-	err = ipv4ll_start_client(dhcp);
-	if (err < 0)
-		DBG("Cannot start ipv4ll client (%d/%s)", err, strerror(-err));
+	if (connman_setting_get_bool("EnableIPv4LL")) {
+		err = ipv4ll_start_client(dhcp);
+		if (err < 0)
+			DBG("Cannot start ipv4ll client (%d/%s)", err,
+				strerror(-err));
+	}
 
 	/* Only notify upper layer if we have a problem */
 	dhcp_invalidate(dhcp, !ipv4ll_running);

@@ -78,6 +78,7 @@ static struct {
 	bool persistent_tethering_mode;
 	bool enable_6to4;
 	int favorite_max_retries;
+	bool enable_ipv4ll;
 } connman_settings  = {
 	.bg_scan = true,
 	.pref_timeservers = NULL,
@@ -94,6 +95,7 @@ static struct {
 	.persistent_tethering_mode = false,
 	.enable_6to4 = false,
 	.favorite_max_retries = 2,
+	.enable_ipv4ll = true,
 };
 
 #define CONF_BG_SCAN                    "BackgroundScanning"
@@ -111,6 +113,7 @@ static struct {
 #define CONF_PERSISTENT_TETHERING_MODE  "PersistentTetheringMode"
 #define CONF_ENABLE_6TO4                "Enable6to4"
 #define CONF_FAVORITE_MAX_RETRIES       "FavoriteMaxRetries"
+#define CONF_ENABLE_IPV4LL              "EnableIPv4LL"
 
 static const char *supported_options[] = {
 	CONF_BG_SCAN,
@@ -128,6 +131,7 @@ static const char *supported_options[] = {
 	CONF_PERSISTENT_TETHERING_MODE,
 	CONF_ENABLE_6TO4,
 	CONF_FAVORITE_MAX_RETRIES,
+	CONF_ENABLE_IPV4LL,
 	NULL
 };
 
@@ -394,6 +398,13 @@ static void parse_config(GKeyFile *config)
 		connman_settings.favorite_max_retries = retries;
 
 	g_clear_error(&error);
+
+	boolean = __connman_config_get_bool(config, "General",
+					CONF_ENABLE_IPV4LL, &error);
+	if (!error)
+		connman_settings.enable_ipv4ll = boolean;
+
+	g_clear_error(&error);
 }
 
 static int config_init(const char *file)
@@ -570,6 +581,9 @@ bool connman_setting_get_bool(const char *key)
 
 	if (g_str_equal(key, CONF_ENABLE_6TO4))
 		return connman_settings.enable_6to4;
+
+	if (g_str_equal(key, CONF_ENABLE_IPV4LL))
+		return connman_settings.enable_ipv4ll;
 
 	return false;
 }
