@@ -258,6 +258,8 @@ static DBusMessage *set_property(DBusConnection *conn,
 		if (settimeofday(&tv, NULL) < 0)
 			return __connman_error_invalid_arguments(msg);
 
+		system("hwclock --utc --systohc");
+
 		connman_dbus_property_changed_basic(CONNMAN_MANAGER_PATH,
 				CONNMAN_CLOCK_INTERFACE, "Time",
 				DBUS_TYPE_UINT64, &newval);
